@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.android.bakingapp.Activity.ReceipeStepActivity">
+    <LinearLayout
+        android:id="@+id/receipe_step_linear_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        android:orientation="vertical"
+        android:paddingBottom="16dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="16dp">
+        <FrameLayout android:id="@+id/video_container"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:scaleType="centerInside"/>
+        <FrameLayout android:id="@+id/step_detail_container"
+            android:layout_width="match_parent"
+            android:layout_height="240dp"
+            android:scaleType="centerInside"/>
+        <FrameLayout android:id="@+id/navigation_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scaleType="centerInside"/>
+
+    </LinearLayout>
+</ScrollView>
