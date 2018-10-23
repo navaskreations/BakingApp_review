@@ -42,33 +42,4 @@ public class Ingredients implements Serializable{
     public void setIngredient(String ingredient) {
         this.ingredient = ingredient;
     }
-/*
-    public Ingredients(Parcel in) {
-        quantity = in.readDouble();
-        measure = in.readString();
-        ingredient = in.readString();
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeDouble(quantity);
-        parcel.writeString(measure);
-        parcel.writeString(ingredient);
-    }
-
-    // This is to de-serialize the object
-    public static final Parcelable.Creator<Ingredients> CREATOR = new Parcelable.Creator<Ingredients>() {
-        public Ingredients createFromParcel(Parcel in) {
-            return new Ingredients(in);
-        }
-        public Ingredients[] newArray(int size) {
-            return new Ingredients[size];
-        }
-    };*/
 }

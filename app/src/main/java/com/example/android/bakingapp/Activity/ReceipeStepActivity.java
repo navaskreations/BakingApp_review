@@ -85,12 +85,12 @@ public class ReceipeStepActivity extends AppCompatActivity implements ReceipeMas
                     if (masterFragment.isAdded())
                     fragmentManager.beginTransaction()
                             .replace(R.id.steps_container, masterFragment)
-                            .addToBackStack(null)
+                            //.addToBackStack(null)
                             .commit();
                     else
                         fragmentManager.beginTransaction()
                                 .add(R.id.steps_container, masterFragment)
-                                .addToBackStack(null)
+                                //.addToBackStack(null)
                                 .commit();
 
 
@@ -107,14 +107,14 @@ public class ReceipeStepActivity extends AppCompatActivity implements ReceipeMas
                         videoFragment.setArguments(arguments);
                         fragmentManager.beginTransaction()
                                 .add(R.id.video_container, videoFragment)
-                                .addToBackStack(null)
+                               // .addToBackStack(null)
                                 .commit();
 
                         ReceipeDetailStepFragment detailStepFragment = new ReceipeDetailStepFragment();
                         detailStepFragment.setArguments(arguments);
                         fragmentManager.beginTransaction()
                                 .add(R.id.step_detail_container, detailStepFragment)
-                                .addToBackStack(null)
+                               // .addToBackStack(null)
                                 .commit();
                     }
                 }
@@ -204,7 +204,7 @@ public class ReceipeStepActivity extends AppCompatActivity implements ReceipeMas
         ingredientFragment.setArguments(arguments);
         fragmentManager.beginTransaction()
                 .add(R.id.ingredient_container, ingredientFragment)
-                .addToBackStack(null)
+                //.addToBackStack(null)
                 .commit();
     }
 

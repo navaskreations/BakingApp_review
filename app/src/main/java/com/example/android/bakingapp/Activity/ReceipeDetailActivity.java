@@ -3,6 +3,8 @@ package com.example.android.bakingapp.Activity;
 import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.NavUtils;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -79,7 +81,7 @@ public class ReceipeDetailActivity extends AppCompatActivity implements ReceipeN
                                 videoFragment.setArguments(arguments);
                                 fragmentManager.beginTransaction()
                                         .add(R.id.video_container, videoFragment)
-                                        .addToBackStack(null)
+                                        //.addToBackStack(null)
                                         .commit();
                             }
 
@@ -88,7 +90,7 @@ public class ReceipeDetailActivity extends AppCompatActivity implements ReceipeN
                                 detailStepFragment.setArguments(arguments);
                                 fragmentManager.beginTransaction()
                                         .add(R.id.step_detail_container, detailStepFragment)
-                                        .addToBackStack(null)
+                                       // .addToBackStack(null)
                                         .commit();
                             }
 
@@ -97,7 +99,7 @@ public class ReceipeDetailActivity extends AppCompatActivity implements ReceipeN
                                 navigationFragment.setArguments(arguments);
                                 fragmentManager.beginTransaction()
                                         .add(R.id.navigation_container, navigationFragment)
-                                        .addToBackStack(null)
+                                       // .addToBackStack(null)
                                         .commit();
                             }
                         }
@@ -170,14 +172,4 @@ public class ReceipeDetailActivity extends AppCompatActivity implements ReceipeN
         super.onSaveInstanceState(currentState);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            // Respond to the action bar's Up/Home button
-            case android.R.id.home:
-                finish();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 }

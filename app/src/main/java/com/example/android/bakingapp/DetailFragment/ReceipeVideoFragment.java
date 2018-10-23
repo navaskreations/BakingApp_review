@@ -18,6 +18,7 @@ import com.example.android.bakingapp.Activity.ReceipeStepActivity;
 import com.example.android.bakingapp.R;
 import com.example.android.bakingapp.pojo.Receipe;
 import com.example.android.bakingapp.pojo.ReceipeSteps;
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
@@ -36,6 +37,7 @@ import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 
+
 import java.net.URI;
 
 import butterknife.BindView;
@@ -45,10 +47,19 @@ public class ReceipeVideoFragment extends Fragment implements ExoPlayer.EventLis
 
     // Tag for logging
     private static final String TAG = ReceipeNavigationFragment.class.getSimpleName();
+
+    private static final String KEY_POSITION = "position";
+    private static final String KEY_AUTO_PLAY = "auto_play";
+    private static final String KEY_WINDOW = "window";
+
     private SimpleExoPlayer mExoPlayer;
     private SimpleExoPlayerView mPlayerView;
     private MediaSessionCompat mMediaSession;
     private PlaybackStateCompat.Builder mStateBuilder;
+
+    private boolean startAutoPlay;
+    private long startPosition;
+    private int startWindow;
 
     TextView video;
 
@@ -59,26 +70,22 @@ public class ReceipeVideoFragment extends Fragment implements ExoPlayer.EventLis
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_receipe_video, container, false);
-        // Initialize the player view.
-        mPlayerView = (SimpleExoPlayerView) rootView.findViewById(R.id.playerView);
-        // Initialize the Media Session.
-        initializeMediaSession();
 
-        if (getArguments() != null) {
-            ReceipeSteps steps = (ReceipeSteps) getArguments().get(ReceipeStepActivity.SELECTED_RECEIPE_STEP);
+        if (savedInstanceState != null) {
+            startAutoPlay = savedInstanceState.getBoolean(KEY_AUTO_PLAY);
+            startPosition = savedInstanceState.getLong(KEY_POSITION);
+            startWindow = savedInstanceState.getInt(KEY_WINDOW);
+        } else {
+            startAutoPlay = true;
+            startPosition = C.TIME_UNSET;
+            setRetainInstance(true);
 
-            if (steps != null) {
-                Log.i(TAG, "you choose " + steps.getDescription());
-                // Initialize the player.
-                if(steps.getVideoURL().isEmpty())
-                    // Load the question mark as the background image until the user answers the question.
-                    mPlayerView.setDefaultArtwork(BitmapFactory.decodeResource
-                            (getResources(), R.drawable.novideo));
-
-                initializePlayer(Uri.parse(steps.getVideoURL()));
-            }
+            // Initialize the player view.
+            mPlayerView = (SimpleExoPlayerView) rootView.findViewById(R.id.playerView);
+            // Initialize the Media Session.
+            initializeMediaSession();
         }
-        return rootView;
+     return rootView;
     }
 
     @Override
@@ -116,9 +123,25 @@ public class ReceipeVideoFragment extends Fragment implements ExoPlayer.EventLis
         mMediaSession.setActive(true);
     }
 
-    private void initializePlayer(Uri mediaUri) {
+    private void initializePlayer() {
         if (mExoPlayer == null) {
-            // Create an instance of the ExoPlayer.
+
+            Uri mediaUri = null;
+            if (getArguments() != null) {
+                ReceipeSteps steps = (ReceipeSteps) getArguments().get(ReceipeStepActivity.SELECTED_RECEIPE_STEP);
+
+                if (steps != null) {
+                    Log.i(TAG, "you choose " + steps.getDescription());
+                    // Initialize the player.
+                    if (steps.getVideoURL().isEmpty())
+                        // Load the question mark as the background image until the user answers the question.
+                        mPlayerView.setDefaultArtwork(BitmapFactory.decodeResource
+                                (getResources(), R.drawable.novideo));
+                    mediaUri = Uri.parse(steps.getVideoURL());
+                }
+            }
+
+                    // Create an instance of the ExoPlayer.
             TrackSelector trackSelector = new DefaultTrackSelector();
             LoadControl loadControl = new DefaultLoadControl();
             mExoPlayer = ExoPlayerFactory.newSimpleInstance(getContext(), trackSelector, loadControl);
@@ -131,15 +154,32 @@ public class ReceipeVideoFragment extends Fragment implements ExoPlayer.EventLis
             String userAgent = Util.getUserAgent(getContext(), "BakingApp");
             MediaSource mediaSource = new ExtractorMediaSource(mediaUri, new DefaultDataSourceFactory(
                     getContext(), userAgent), new DefaultExtractorsFactory(), null, null);
+            mExoPlayer.setPlayWhenReady(startAutoPlay);
+
+            boolean haveStartPosition = startWindow != C.INDEX_UNSET;
+            if (haveStartPosition) {
+                mExoPlayer.seekTo(startWindow, startPosition);
+            }
+
             mExoPlayer.prepare(mediaSource);
-            mExoPlayer.setPlayWhenReady(true);
         }
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (mExoPlayer != null)
         releasePlayer();
         mMediaSession.setActive(false);
     }
@@ -147,15 +187,28 @@ public class ReceipeVideoFragment extends Fragment implements ExoPlayer.EventLis
     @Override
     public void onPause() {
         super.onPause();
-        releasePlayer();
-        mMediaSession.setActive(false);
+        if (mExoPlayer != null) {
+            startAutoPlay = mExoPlayer.getPlayWhenReady();
+            startPosition = mExoPlayer.getCurrentPosition();
+            startWindow = mExoPlayer.getCurrentWindowIndex();
+            releasePlayer();
+        }
+       // mMediaSession.setActive(false);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putLong(KEY_POSITION,startPosition);
+        outState.putBoolean(KEY_AUTO_PLAY, startAutoPlay);
+        outState.putInt(KEY_WINDOW, startWindow);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        releasePlayer();
-        mMediaSession.setActive(false);
+        if (Util.SDK_INT > 23 && mExoPlayer != null) {
+            releasePlayer();
+        }
     }
 
     private void releasePlayer() {
@@ -163,6 +216,22 @@ public class ReceipeVideoFragment extends Fragment implements ExoPlayer.EventLis
             mExoPlayer.stop();
             mExoPlayer.release();
             mExoPlayer = null;
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (Util.SDK_INT > 23) {
+            initializePlayer();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (Util.SDK_INT <= 23 || mExoPlayer == null) {
+            initializePlayer();
         }
     }
 

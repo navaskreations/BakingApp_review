@@ -39,6 +39,7 @@ import com.example.android.bakingapp.pojo.Ingredients;
 import com.example.android.bakingapp.pojo.Receipe;
 import com.example.android.bakingapp.provider.IngredientContract;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements ReceipeAdapter.Re
 
     private static final String TAG = MainActivity.class.getSimpleName();
     public static final String SELECTED_RECEIPE = "selectedreceipe";
+    static final String STATE_RESPONSE = "response";
 
     private ReceipeAdapter mAdapter;
     @BindView(R.id.rv_receipe)
@@ -79,7 +81,8 @@ public class MainActivity extends AppCompatActivity implements ReceipeAdapter.Re
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
+        Log.i(TAG,"am called Deeepa!!!!!");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -214,5 +217,6 @@ public class MainActivity extends AppCompatActivity implements ReceipeAdapter.Re
     public void onDone(ArrayList<Receipe> receipes) {
         //generateDataList(receipes);
     }
+
 }
 

@@ -65,38 +65,4 @@ public class ReceipeSteps implements Serializable{
         this.thumbnailURL = thumbnailURL;
     }
 
-    /*
-    public ReceipeSteps(Parcel in) {
-        id = in.readInt();
-        description = in.readString();
-        shortDescription = in.readString();
-        videoURL = in.readString();
-        thumbnailURL = in.readString();
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeInt(id);
-        parcel.writeString(description);
-        parcel.writeString(shortDescription);
-     parcel.writeString(videoURL);
-        parcel.writeString(thumbnailURL);
-}
-
-    // This is to de-serialize the object
-    public static final Parcelable.Creator<ReceipeSteps> CREATOR = new Parcelable.Creator<ReceipeSteps>() {
-        public ReceipeSteps createFromParcel(Parcel in) {
-            return new ReceipeSteps(in);
-        }
-        public ReceipeSteps[] newArray(int size) {
-            return new ReceipeSteps[size];
-        }
-    };
-*/
-}
+  }
