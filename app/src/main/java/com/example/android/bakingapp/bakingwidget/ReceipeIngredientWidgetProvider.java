@@ -1,18 +1,20 @@
 package com.example.android.bakingapp.bakingwidget;
 
-import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import com.example.android.bakingapp.Activity.MainActivity;
-import com.example.android.bakingapp.Activity.ReceipeIngredientActivity;
 import com.example.android.bakingapp.R;
+import com.example.android.bakingapp.provider.IngredientContract;
+
+import static com.example.android.bakingapp.provider.IngredientContract.BASE_CONTENT_URI;
+import static com.example.android.bakingapp.provider.IngredientContract.PATH_RECEIPE;
 
 /**
  * Implementation of App Widget functionality.
@@ -20,10 +22,10 @@ import com.example.android.bakingapp.R;
 public class ReceipeIngredientWidgetProvider extends AppWidgetProvider {
 
     private static final String TAG = ReceipeIngredientWidgetProvider.class.getSimpleName();
-
+Cursor cursor;
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
-        RemoteViews views = getReceipeGridRemoteView(context);
+      RemoteViews views = getReceipeRemoteView(context);
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
         Log.d(TAG,"updateAppWidget");
@@ -80,24 +82,24 @@ public class ReceipeIngredientWidgetProvider extends AppWidgetProvider {
      * @param context The context
      * @return The RemoteViews for the GridView mode widget
      */
-    public static RemoteViews getReceipeGridRemoteView(Context context) {
+    public static RemoteViews getReceipeRemoteView(Context mContext) {
+        Cursor cursor = null;
+        RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.receipe_ingredient_widget_provider);
+        Uri RECEIPE_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_RECEIPE).build();
 
-        Log.d(TAG,"getReceipeGridRemoteView");
-
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_grid_views);
-        // GridWidgetService intent to act as the adapter for the GridView
-        Intent intent = new Intent(context, GridWidgetServices.class);
-        views.setRemoteAdapter(R.id.widget_grid_view, intent);
-        // Set the ReceipeIngredientActivity intent to launch when clicked
-        Intent appIntent = new Intent(context, ReceipeIngredientActivity.class);
-        PendingIntent appPendingIntent = PendingIntent.getActivity(context, 0, appIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-        views.setPendingIntentTemplate(R.id.widget_grid_view, appPendingIntent);
-                // Handle empty receipe
-        views.setEmptyView(R.id.widget_grid_view, R.id.empty_view);
-       /* AppWidgetManager mgr = AppWidgetManager.getInstance(context);
-        int[] appWidgetIds = mgr.getAppWidgetIds(new ComponentName(context, ReceipeIngredientWidgetProvider.class));
-        mgr.notifyAppWidgetViewDataChanged(appWidgetIds,R.id.widget_grid_view);*/
-        return views;
+        cursor = mContext.getContentResolver().query(
+                RECEIPE_URI,
+                null,
+                "receipeName=" + "\'lastseenreceipe\'",
+                null,
+                null
+        );
+        if (cursor != null && cursor.getCount() >    0) {
+            cursor.moveToPosition(0);
+            int rIngredient = cursor.getColumnIndex(IngredientContract.ReceipeEntry.COLUMN_INGREDEINT);
+            views.setTextViewText(R.id.tv_receipewidget, cursor.getString(rIngredient));
         }
+        return  views;
+    }
 }
 

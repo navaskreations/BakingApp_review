@@ -78,14 +78,16 @@ public class ReceipeVideoFragment extends Fragment implements ExoPlayer.EventLis
         } else {
             startAutoPlay = true;
             startPosition = C.TIME_UNSET;
-            setRetainInstance(true);
+            startWindow = C.INDEX_UNSET;
+             //setRetainInstance(true);
 
-            // Initialize the player view.
-            mPlayerView = (SimpleExoPlayerView) rootView.findViewById(R.id.playerView);
-            // Initialize the Media Session.
-            initializeMediaSession();
         }
-     return rootView;
+        // Initialize the player view.
+        mPlayerView = (SimpleExoPlayerView) rootView.findViewById(R.id.playerView);
+        // Initialize the Media Session.
+        initializeMediaSession();
+        initializePlayer();
+        return rootView;
     }
 
     @Override
@@ -141,7 +143,7 @@ public class ReceipeVideoFragment extends Fragment implements ExoPlayer.EventLis
                 }
             }
 
-                    // Create an instance of the ExoPlayer.
+            // Create an instance of the ExoPlayer.
             TrackSelector trackSelector = new DefaultTrackSelector();
             LoadControl loadControl = new DefaultLoadControl();
             mExoPlayer = ExoPlayerFactory.newSimpleInstance(getContext(), trackSelector, loadControl);
@@ -156,12 +158,14 @@ public class ReceipeVideoFragment extends Fragment implements ExoPlayer.EventLis
                     getContext(), userAgent), new DefaultExtractorsFactory(), null, null);
             mExoPlayer.setPlayWhenReady(startAutoPlay);
 
-            boolean haveStartPosition = startWindow != C.INDEX_UNSET;
-            if (haveStartPosition) {
+            boolean haveStartPosition = false;
+            if(startWindow != C.INDEX_UNSET)
+                haveStartPosition = true;
+           if (haveStartPosition) {
                 mExoPlayer.seekTo(startWindow, startPosition);
             }
 
-            mExoPlayer.prepare(mediaSource);
+            mExoPlayer.prepare(mediaSource,haveStartPosition,false);
         }
     }
 
@@ -180,20 +184,16 @@ public class ReceipeVideoFragment extends Fragment implements ExoPlayer.EventLis
     public void onDestroyView() {
         super.onDestroyView();
         if (mExoPlayer != null)
-        releasePlayer();
-        mMediaSession.setActive(false);
+            releasePlayer();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (mExoPlayer != null) {
-            startAutoPlay = mExoPlayer.getPlayWhenReady();
-            startPosition = mExoPlayer.getCurrentPosition();
-            startWindow = mExoPlayer.getCurrentWindowIndex();
+        if (Util.SDK_INT <= 23) {
             releasePlayer();
         }
-       // mMediaSession.setActive(false);
+        // mMediaSession.setActive(false);
     }
 
     @Override
@@ -206,15 +206,19 @@ public class ReceipeVideoFragment extends Fragment implements ExoPlayer.EventLis
     @Override
     public void onStop() {
         super.onStop();
-        if (Util.SDK_INT > 23 && mExoPlayer != null) {
+        if (Util.SDK_INT > 23) {
             releasePlayer();
         }
     }
 
     private void releasePlayer() {
         if (mExoPlayer != null) {
+                startAutoPlay = mExoPlayer.getPlayWhenReady();
+                startPosition = mExoPlayer.getCurrentPosition();
+                startWindow = mExoPlayer.getCurrentWindowIndex();
             mExoPlayer.stop();
             mExoPlayer.release();
+
             mExoPlayer = null;
         }
     }
@@ -227,9 +231,19 @@ public class ReceipeVideoFragment extends Fragment implements ExoPlayer.EventLis
         }
     }
 
+    private void hideSystemUi() {
+        mPlayerView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+    }
+
     @Override
     public void onResume() {
         super.onResume();
+       // hideSystemUi();
         if (Util.SDK_INT <= 23 || mExoPlayer == null) {
             initializePlayer();
         }

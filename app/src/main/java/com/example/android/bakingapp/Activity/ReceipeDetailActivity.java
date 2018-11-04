@@ -37,6 +37,7 @@ public class ReceipeDetailActivity extends AppCompatActivity implements ReceipeN
     ArrayList<ReceipeSteps> steps;
     int mposition = 0;
     String rName;
+    boolean updatecontineronorienchange = false;
 
     /*This Method displays the detailsFragment by calling description,video and navigation fragment*/
     @Override
@@ -50,7 +51,9 @@ public class ReceipeDetailActivity extends AppCompatActivity implements ReceipeN
             mposition = savedInstanceState.getInt(POSITION);
             selectedReceipeStep = (ReceipeSteps) savedInstanceState.getSerializable(SELECTED_RECEIPESTEP);
             steps = (ArrayList<ReceipeSteps>) savedInstanceState.getSerializable(RECEIPE_STEP_LIST);
-            setTitle(savedInstanceState.getString(RECEIPENAME));
+            rName = savedInstanceState.getString(RECEIPENAME);
+            setTitle(rName);
+            updatecontineronorienchange = true;
             callfragment(selectedReceipeStep);
         }
 
@@ -113,6 +116,7 @@ public class ReceipeDetailActivity extends AppCompatActivity implements ReceipeN
         Toast.makeText(this, "you choose Previous Button", Toast.LENGTH_LONG).show();
         mposition = position - 1;
         selectedReceipeStep = steps.get(mposition);
+        updatecontineronorienchange = false;
         callfragment(selectedReceipeStep);
     }
 
@@ -121,13 +125,14 @@ public class ReceipeDetailActivity extends AppCompatActivity implements ReceipeN
         Toast.makeText(this, "you choose Next Button", Toast.LENGTH_LONG).show();
         mposition = position + 1;
         selectedReceipeStep = steps.get(mposition);
+        updatecontineronorienchange = false;
         callfragment(selectedReceipeStep);
     }
 
     /* Replace the detail fragment in master/detail when navigation button is pressed*/
     public void callfragment(ReceipeSteps selectedReceipe) {
         if (selectedReceipe != null) {
-            Toast.makeText(this, "you choose " + selectedReceipe.getDescription(), Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, "you choose " + selectedReceipe.getDescription(), Toast.LENGTH_LONG).show();
             Log.i(TAG, "you choose " + selectedReceipe.getDescription());
 
             Bundle arguments = new Bundle();
@@ -137,7 +142,7 @@ public class ReceipeDetailActivity extends AppCompatActivity implements ReceipeN
 
             FragmentManager fragmentManager = getSupportFragmentManager();
 
-            if (findViewById(R.id.video_container) != null) {
+            if (findViewById(R.id.video_container) != null && !updatecontineronorienchange) {
                 ReceipeVideoFragment videoFragment = new ReceipeVideoFragment();
                 videoFragment.setArguments(arguments);
                 fragmentManager.beginTransaction()

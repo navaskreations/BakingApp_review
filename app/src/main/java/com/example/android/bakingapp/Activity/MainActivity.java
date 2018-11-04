@@ -24,6 +24,7 @@ import android.view.View;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.RemoteViews;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,7 +53,7 @@ import retrofit2.Response;
 import static com.example.android.bakingapp.provider.IngredientContract.BASE_CONTENT_URI;
 import static com.example.android.bakingapp.provider.IngredientContract.PATH_RECEIPE;
 
-public class MainActivity extends AppCompatActivity implements ReceipeAdapter.ReceipeAdapterOnClickHandler, ReceipeDownloader.DelayerCallback  {
+public class MainActivity extends AppCompatActivity implements ReceipeAdapter.ReceipeAdapterOnClickHandler, ReceipeDownloader.DelayerCallback {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     public static final String SELECTED_RECEIPE = "selectedreceipe";
@@ -82,7 +83,6 @@ public class MainActivity extends AppCompatActivity implements ReceipeAdapter.Re
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
-        Log.i(TAG,"am called Deeepa!!!!!");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements ReceipeAdapter.Re
         /*ProgressBar*/
         // SetupLoader
         mprogressDialog = (ProgressBar) findViewById(R.id.progressbar);
-       mprogressDialog.setVisibility(View.VISIBLE);
+        mprogressDialog.setVisibility(View.VISIBLE);
         /*Create handle for the RetrofitInstance interface to  extract Receipe Information from the URL*/
         APIInterface apiInterface = RetrofitClientInstance.getRetrofitInstance().create(APIInterface.class);
         Call<List<Receipe>> call = apiInterface.getAllReceipe();
@@ -119,7 +119,9 @@ public class MainActivity extends AppCompatActivity implements ReceipeAdapter.Re
         mRecyclerView.setHasFixedSize(true);
         mAdapter = new ReceipeAdapter(this, receipeList);
         mRecyclerView.setAdapter(mAdapter);
-        updateDB(receipeList);
+      //  updateDB(receipeList);
+        // by default before selecting receipes in app widget is directed to display first receipe ingredient list.
+        updateDBLastSeenReceipe(receipeList.get(0));
     }
 
     /*Method to instantiate Receipe Steps for the selected Receipe*/
@@ -129,6 +131,14 @@ public class MainActivity extends AppCompatActivity implements ReceipeAdapter.Re
         Intent intent = new Intent(context, ReceipeStepActivity.class);
         intent.putExtra(SELECTED_RECEIPE, receipe);
         startActivity(intent);
+
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.receipe_ingredient_widget_provider);
+        ComponentName thisWidget = new ComponentName(context, ReceipeIngredientWidgetProvider.class);
+        String ing = getIngredients((ArrayList<Ingredients>) receipe.getIngredients(), receipe.getName());
+        remoteViews.setTextViewText(R.id.tv_receipewidget, " User Last Seen Ingredient \n\n" + ing);
+        appWidgetManager.updateAppWidget(thisWidget, remoteViews);
+        updateDBLastSeenReceipe(receipe);
     }
 
     @Override
@@ -137,8 +147,8 @@ public class MainActivity extends AppCompatActivity implements ReceipeAdapter.Re
         ReceipeDownloader.downloadReceipe(this, MainActivity.this, mIdlingResource);
     }
 
-    /*Method to store the ingredients details in local DB for widget Purpose*/
-    public void updateDB(List<Receipe> receipeList) {
+    /*Method to store the ingredients details in local DB for widget Purpose to handle grid view*/
+    /*public void updateDB(List<Receipe> receipeList) {
 
         if (receipeList != null) {
             if (receipeList.size() >= 0) {
@@ -155,38 +165,24 @@ public class MainActivity extends AppCompatActivity implements ReceipeAdapter.Re
                             null,
                             null
                     );
-//Print Cursor values
-                /*if (mCursor.moveToFirst()) {
-                    do {
-                        StringBuilder sb = new StringBuilder();
-                        int columnsQty = mCursor.getColumnCount();
-                        for (int idx=0; idx<columnsQty; ++idx) {
-                            sb.append(mCursor.getString(idx));
-                            if (idx < columnsQty - 1)
-                                sb.append("; ");
-                        }
-                        Log.v(TAG, String.format("Row: %d, Values: %s", mCursor.getPosition(),
-                                sb.toString()));
-                    } while (mCursor.moveToNext());
-                }*/
                     String receipeName = receipeList.get(j).getName();
                     String temp = "";
                     List<Ingredients> ingredientsList = receipeList.get(j).getIngredients();
                     //Frame the Ingredients to display
                     if (ingredientsList != null) {
-                    if (ingredientsList.size() != 0) {
-                        String tempHeading = " INGREDIENTS \n\n";
-                        temp = tempHeading;
-                        for (int i = 0; i < ingredientsList.size(); i++) {
-                            String quantity;
-                            String measure;
-                            String ing;
-                            quantity = String.valueOf(ingredientsList.get(i).getQuantity());
-                            measure = String.valueOf(ingredientsList.get(i).getMeasure());
-                            ing = String.valueOf(ingredientsList.get(i).getIngredient());
-                            temp = temp + quantity + " " + measure + "  " + ing + "\n";
+                        if (ingredientsList.size() != 0) {
+                            String tempHeading = " INGREDIENTS \n\n";
+                            temp = tempHeading;
+                            for (int i = 0; i < ingredientsList.size(); i++) {
+                                String quantity;
+                                String measure;
+                                String ing;
+                                quantity = String.valueOf(ingredientsList.get(i).getQuantity());
+                                measure = String.valueOf(ingredientsList.get(i).getMeasure());
+                                ing = String.valueOf(ingredientsList.get(i).getIngredient());
+                                temp = temp + quantity + " " + measure + "  " + ing + "\n";
+                            }
                         }
-                    }
                     }
                     if (mCursor != null && mCursor.moveToFirst()) {
                         // Update the receipe into DB
@@ -211,11 +207,72 @@ public class MainActivity extends AppCompatActivity implements ReceipeAdapter.Re
                 }
             }
         }
+    }*/
+
+
+    /*Method to store the ingredients details in local DB for widget Purpose*/
+    public void updateDBLastSeenReceipe(Receipe receipechoose) {
+
+        if (receipechoose != null) {
+            Cursor mCursor = null;
+            Uri RECEIPE_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_RECEIPE).build();
+            if (mCursor != null) mCursor.close();
+            mCursor = this.getContentResolver().query(
+                    RECEIPE_URI,
+                    null,
+                    "receipeName=" + "\'lastseenreceipe\'",
+                    null,
+                    null,
+                    null
+            );
+
+            String ing = getIngredients((ArrayList<Ingredients>) receipechoose.getIngredients(), receipechoose.getName());
+            if (mCursor != null && mCursor.moveToFirst()) {
+                // Update the receipe into DB
+                ContentValues contentValues = new ContentValues();
+                //Log.i(TAG, "Table " + receipeId + ":" + receipeName + ":" + temp);
+                contentValues.put(IngredientContract.ReceipeEntry.COLUMN_RECEIPE_ID, 100);
+                contentValues.put(IngredientContract.ReceipeEntry.COLUMN_RECEIPE_NAME, "lastseenreceipe");
+                contentValues.put(IngredientContract.ReceipeEntry.COLUMN_INGREDEINT, " User Last Seen Ingredient \n\n" + ing);
+                int result = getContentResolver().update(IngredientContract.ReceipeEntry.CONTENT_URI, contentValues, "receipeName=" + "\'lastseenreceipe\'", null);
+                Log.i(TAG, "Table updated for receipe name" + receipechoose);
+
+            } else {
+                // Insert the new receipe into DB
+                ContentValues contentValues = new ContentValues();
+                //   Log.i(TAG, "Table " + receipeId + ":" + receipeName + ":" + temp);
+                contentValues.put(IngredientContract.ReceipeEntry.COLUMN_RECEIPE_ID, receipechoose.getId());
+                contentValues.put(IngredientContract.ReceipeEntry.COLUMN_RECEIPE_NAME, "lastseenreceipe");
+                contentValues.put(IngredientContract.ReceipeEntry.COLUMN_INGREDEINT, " Ingredient List \n\n" + ing);
+                getContentResolver().insert(IngredientContract.ReceipeEntry.CONTENT_URI, contentValues);
+                Log.i(TAG, "Table inserted");
+            }
+        }
     }
 
     @Override
     public void onDone(ArrayList<Receipe> receipes) {
         //generateDataList(receipes);
+    }
+
+    public String getIngredients(ArrayList<Ingredients> ingredientsList, String name) {
+        String temp = "";
+        if (ingredientsList != null && ingredientsList.size() != 0) {
+
+            String tempHeading = name + "\n";
+            temp = tempHeading;
+            for (int i = 0; i < ingredientsList.size(); i++) {
+                String quantity;
+                String measure;
+                String ing;
+                quantity = String.valueOf(ingredientsList.get(i).getQuantity());
+                measure = String.valueOf(ingredientsList.get(i).getMeasure());
+                ing = String.valueOf(ingredientsList.get(i).getIngredient());
+                temp = temp + quantity + " " + measure + "  " + ing + "\n";
+            }
+
+        }
+        return temp;
     }
 
 }

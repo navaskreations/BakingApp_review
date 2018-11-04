@@ -46,19 +46,19 @@ public class ReceipeIngredientActivity extends AppCompatActivity {
                 Bundle arguments = new Bundle();
                 List<Ingredients> ingredients = new ArrayList<Ingredients>();
                 //Check if it is from widget or activity
-                if (intentThatStartedThisActivity.hasExtra(RECEIPEID)) {
+               /* if (intentThatStartedThisActivity.hasExtra(RECEIPEID)) {
                     String receipeID = intentThatStartedThisActivity.getStringExtra(RECEIPEID);
                     String receipeIngredeint = intentThatStartedThisActivity.getStringExtra(RECEIPEINGREDIENTWIDGET);
                     arguments.putString(RECEIPEID, receipeID);
                     arguments.putString(RECEIPEINGREDIENTWIDGET, receipeIngredeint);
-                } else {
+                } else {*/
                     ingredients = (List<Ingredients>) intentThatStartedThisActivity.getSerializableExtra(ReceipeMasterFragment.INGREDIENTLIST_MASTER);
                     if (ingredients.size() != 0) {
                         //Toast.makeText(this, "you choose " + ingredients.get(0).getIngredient(), Toast.LENGTH_LONG).show();
                         Log.i(TAG, "you choose " + ingredients.get(0).getIngredient());
 
                         arguments.putSerializable(ReceipeStepActivity.RECEIPE_INGREDEINTS, (Serializable) ingredients);
-                    }
+                    //}
                 }
                 FragmentManager fragmentManager = getSupportFragmentManager();
 

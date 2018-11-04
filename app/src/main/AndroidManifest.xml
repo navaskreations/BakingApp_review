@@ -55,10 +55,6 @@
             android:authorities="com.example.android.bakingapp"
             android:exported="true" />
 
-        <service
-            android:name=".bakingwidget.GridWidgetServices"
-            android:permission="android.permission.BIND_REMOTEVIEWS" />
-
     </application>
 
 </manifest>
