@@ -77,7 +77,7 @@ public class ReceipeVideoFragment extends Fragment implements ExoPlayer.EventLis
             startWindow = savedInstanceState.getInt(KEY_WINDOW);
         } else {
             startAutoPlay = true;
-            startPosition = C.TIME_UNSET;
+            startPosition = 0;
             startWindow = C.INDEX_UNSET;
              //setRetainInstance(true);
 
@@ -161,11 +161,14 @@ public class ReceipeVideoFragment extends Fragment implements ExoPlayer.EventLis
             boolean haveStartPosition = false;
             if(startWindow != C.INDEX_UNSET)
                 haveStartPosition = true;
-           if (haveStartPosition) {
+
+            if (haveStartPosition) {
                 mExoPlayer.seekTo(startWindow, startPosition);
             }
 
-            mExoPlayer.prepare(mediaSource,haveStartPosition,false);
+            mExoPlayer.prepare(mediaSource,!haveStartPosition,false);
+
+
         }
     }
 
